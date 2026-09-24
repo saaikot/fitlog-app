@@ -7,7 +7,7 @@ import { Dumbbell, Bookmark } from 'lucide-react';
 export default function Navbar() {
   const pathname = usePathname();
 
-  // Ekhon hardcoded 0 ache, pore amra Context API diye dynamic korbo
+  
   const planCount = 0; 
   const savedCount = 0;
 
