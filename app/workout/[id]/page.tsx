@@ -4,35 +4,51 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Star, Dumbbell, Bookmark } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { usePlan } from '@/context/PlanContext';
 
 export default function WorkoutDetails() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
 
+  const { addToPlan, addToSaved, isInPlan, isInSaved, planItems } = usePlan();
   const [workout, setWorkout] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-
     fetch(`https://api.abcz.workers.dev/api/fitlog/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setWorkout(data);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, [id]);
 
+  const planFull = planItems.length >= 5;
+  const alreadyInPlan = workout ? isInPlan(workout.id) : false;
+  const alreadySaved = workout ? isInSaved(workout.id) : false;
+
   const handleAddToPlan = () => {
-    toast.success('Added to today\'s plan');
+    if (planFull) {
+      toast.error('Plan is full (max 5 lifts)');
+      return;
+    }
+    if (alreadyInPlan) {
+      toast.error('Already in your plan');
+      return;
+    }
+    addToPlan(workout);
+    toast.success("Added to today's plan");
   };
 
   const handleSaveForLater = () => {
+    if (alreadySaved) {
+      toast.error('Already saved');
+      return;
+    }
+    addToSaved(workout);
     toast.success('Saved for later');
   };
 
@@ -56,19 +72,18 @@ export default function WorkoutDetails() {
   return (
     <div className="bg-zinc-950 min-h-screen w-full text-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <button 
-          onClick={() => router.back()} 
+        <button
+          onClick={() => router.back()}
           className="text-zinc-400 hover:text-[#ccff00] mb-8 flex items-center gap-2 transition-colors"
         >
           &larr; Back to Library
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
           <div className="relative w-full h-96 lg:h-[600px] rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900">
-            <img 
-              src={workout.image || '/banner.png'} 
-              alt={workout.name} 
+            <img
+              src={workout.image || '/banner.png'}
+              alt={workout.name}
               className="w-full h-full object-cover"
             />
           </div>
@@ -85,8 +100,8 @@ export default function WorkoutDetails() {
 
             <div className="flex flex-wrap gap-2">
               {workout.category?.map((cat: string) => (
-                <span 
-                  key={cat} 
+                <span
+                  key={cat}
                   className="text-xs font-bold uppercase tracking-wider text-[#ccff00] bg-[#ccff00]/10 px-3 py-1.5 rounded"
                 >
                   {cat}
@@ -151,22 +166,23 @@ export default function WorkoutDetails() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <button 
+              <button
                 onClick={handleAddToPlan}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#ccff00] text-black font-bold uppercase px-6 py-4 rounded-full hover:bg-[#b3e600] transition-colors"
+                disabled={planFull || alreadyInPlan}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#ccff00] text-black font-bold uppercase px-6 py-4 rounded-full hover:bg-[#b3e600] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Dumbbell size={18} />
-                Add to today's plan
+                {alreadyInPlan ? 'In Your Plan' : planFull ? 'Plan Full (5/5)' : "Add to today's plan"}
               </button>
-              <button 
+              <button
                 onClick={handleSaveForLater}
-                className="flex-1 flex items-center justify-center gap-2 border border-zinc-700 text-white font-bold uppercase px-6 py-4 rounded-full hover:bg-zinc-800 transition-colors"
+                disabled={alreadySaved}
+                className="flex-1 flex items-center justify-center gap-2 border border-zinc-700 text-white font-bold uppercase px-6 py-4 rounded-full hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Bookmark size={18} />
-                Save for later
+                {alreadySaved ? 'Saved' : 'Save for later'}
               </button>
             </div>
-
           </div>
         </div>
       </div>

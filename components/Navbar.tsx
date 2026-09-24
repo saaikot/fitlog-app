@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Dumbbell, Bookmark } from 'lucide-react';
+import { usePlan } from '@/context/PlanContext';
 
 export default function Navbar() {
   const pathname = usePathname();
-
-  
-  const planCount = 0; 
-  const savedCount = 0;
+  const { planItems, savedItems } = usePlan();
 
   const navLinks = [
     { name: 'Workout', href: '/' },
@@ -21,13 +19,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Logo (Left side) */}
           <Link href="/" className="flex items-center gap-2">
             <Dumbbell className="h-6 w-6 text-[#ccff00]" />
             <span className="font-bold text-xl tracking-wider uppercase">FitLog</span>
           </Link>
 
-          {/* Navigation Links (Middle) */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -45,18 +41,15 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Badges (Right side) */}
           <div className="flex items-center gap-3">
-            {/* Plan Badge (Filled) */}
             <Link href="/my-plan" className="flex items-center gap-1.5 bg-[#ccff00] text-black px-3 py-1.5 rounded-full text-xs font-bold">
               <Dumbbell className="h-3.5 w-3.5" />
-              Plan <span className="bg-black text-[#ccff00] px-1.5 rounded-full">{planCount}</span>
+              Plan <span className="bg-black text-[#ccff00] px-1.5 rounded-full">{planItems.length}</span>
             </Link>
 
-            {/* Saved Badge (Outline) */}
             <Link href="/my-plan" className="flex items-center gap-1.5 border border-zinc-700 text-white px-3 py-1.5 rounded-full text-xs font-bold">
               <Bookmark className="h-3.5 w-3.5" />
-              Saved <span className="text-zinc-400">{savedCount}</span>
+              Saved <span className="text-zinc-400">{savedItems.length}</span>
             </Link>
           </div>
         </div>
